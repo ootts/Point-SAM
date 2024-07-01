@@ -83,7 +83,7 @@ The performance of the Hugging Face demo is limited by data transfer and a share
   <img src="./assets/demo_scene.png" width="49%"/>
 </p>
 
-We provide a local demo for Point-SAM. Some point cloud examples are provided in `demo/static/models`. If you want to try our demo, first install backend dependencies.
+We provide a local demo for Point-SAM in [demo](./demo/). Some point cloud examples are provided in `demo/static/models`. If you want to try our demo, first install backend dependencies.
 ```
 pip install flask flask-cors
 ```
