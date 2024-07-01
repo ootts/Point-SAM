@@ -76,6 +76,25 @@ We only support meshes in GLB format. If your mesh is not in GLB format, please 
 
 The performance of the Hugging Face demo is limited by data transfer and a shared GPU backend. To experience better performance, try running our local demo on your device by executing `python app.py`.
 
+### Point Cloud Segmentation Demo
+
+<p>
+  <img src="./assets/demo.png" width="49%"/>
+  <img src="./assets/demo_scene.png" width="49%"/>
+</p>
+
+We provide a local demo for Point-SAM. Some point cloud examples are provided in `demo/static/models`. If you want to try our demo, first install backend dependencies.
+```
+pip install flask flask-cors
+```
+Run the backend with following commands, you can change `--host` and `--port` to your IP address. 
+```
+python demo/app.py --host localhost --port 5000 --pointcloud scene.ply --checkpoint ./pretrained/model.safetensors
+# python demo/app.py --host localhost --port 5000 --pointcloud rhino.ply --checkpoint ./pretrained/model.safetensors
+# python demo/app.py --host localhost --port 5000 --pointcloud tiko_10000_points.ply --checkpoint ./pretrained/model.safetensors
+# python demo/app.py --host localhost --port 5000 --pointcloud tiko_50000_points.ply --checkpoint ./pretrained/model.safetensors
+```
+
 ### Acknowledgement
 We refer to [SAM](https://github.com/facebookresearch/segment-anything), [Uni3D](https://github.com/baaivision/Uni3D) and [OpenShape](https://github.com/Colin97/OpenShape_code) while developing Point-SAM. Thanks for these awesome works. We also thank @YouJiacheng for providing constructive suggestions for the data engine design.
 
