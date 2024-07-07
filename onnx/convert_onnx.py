@@ -23,6 +23,11 @@ class PointSAMEncoderOnnx(nn.Module):
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output',default='onnx')
+    args = parser.parse_args()
     ckpt_path = "model.safetensors"
     model = build_point_sam(ckpt_path, 512, 64)  # (ckpt_path, num_centers, KNN size)
     pc_encoder: PointCloudEncoder = model.pc_encoder.cuda()
@@ -32,13 +37,13 @@ def main():
     # left_tensor = torch.rand(20, 3, 112, 112).float().cuda()
     # right_tensor = torch.rand(20, 3, 112, 112).float().cuda()
     # left_tensor, right_tensor = torch.load('tmp/left_right_roi_images.pth', 'cuda')
-    xyz = np.random.rand(1, 1000, 3)  # (batch_size, num_points, 3)
+    xyz = np.random.rand(1, 512, 3)  # (batch_size, num_points, 3)
     xyz = torch.tensor(xyz).float().cuda()
-    rgb = np.random.rand(1, 1000, 3)  # (batch_size, num_points, 3)
+    rgb = np.random.rand(1, 512, 3)  # (batch_size, num_points, 3)
     rgb = torch.tensor(rgb).float().cuda()
 
     # Export torch model to ONNX
-    output_onnx = osp.join('onnx', "pointsam_encoder.onnx")
+    output_onnx = args.output
     print("Exporting ONNX model {}".format(output_onnx))
     torch.onnx.export(model, (xyz, rgb), output_onnx,
                       export_params=True,
