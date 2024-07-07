@@ -4,21 +4,24 @@ from typing import Union
 import timm
 import torch
 import torch.nn as nn
+from dl_ext.timer import EvalTime
 from timm.models.eva import Eva
 from timm.models.vision_transformer import VisionTransformer
 
 from .common import KNNGrouper, PatchEncoder
 
+et1 = EvalTime(disable=True)
+
 
 class PatchEmbed(nn.Module):
     def __init__(
-        self,
-        in_channels,
-        out_channels,
-        num_patches,
-        patch_size,
-        radius: float = None,
-        centralize_features=False,
+            self,
+            in_channels,
+            out_channels,
+            num_patches,
+            patch_size,
+            radius: float = None,
+            centralize_features=False,
     ):
         super().__init__()
         self.in_channels = in_channels
@@ -34,10 +37,13 @@ class PatchEmbed(nn.Module):
         self.patch_encoder = PatchEncoder(in_channels, out_channels, [128, 512])
 
     def forward(self, coords: torch.Tensor, features: torch.Tensor):
+        et1("")
         patches = self.grouper(coords, features)
+        et1("grouper")
         patch_features = patches["features"]  # [B, L, K, C_in]
         x = self.patch_encoder(patch_features)
         patches["embeddings"] = x
+        et1("patch_encoder")
         return patches
 
 
@@ -63,7 +69,7 @@ class PatchDropout(nn.Module):
 
         if self.num_prefix_tokens:
             prefix_tokens = x[:, : self.num_prefix_tokens]
-            x = x[:, self.num_prefix_tokens :]
+            x = x[:, self.num_prefix_tokens:]
         else:
             prefix_tokens = None
 
@@ -81,13 +87,16 @@ class PatchDropout(nn.Module):
         return x
 
 
+et = EvalTime()
+
+
 class PointCloudEncoder(nn.Module):
     def __init__(
-        self,
-        patch_embed: PatchEmbed,
-        transformer: Union[VisionTransformer, Eva],
-        embed_dim: int,
-        patch_drop_rate=0.0,
+            self,
+            patch_embed: PatchEmbed,
+            transformer: Union[VisionTransformer, Eva],
+            embed_dim: int,
+            patch_drop_rate=0.0,
     ):
         super().__init__()
         self.transformer_dim = transformer.embed_dim
@@ -117,7 +126,9 @@ class PointCloudEncoder(nn.Module):
 
     def forward(self, coords, features):
         # Group points into patches and get embeddings
+        et("")
         patches = self.patch_embed(coords, features)
+        et("patch_embed")
         if isinstance(patches, list):
             patch_embed = patches[-1]["embeddings"]
             centers = patches[-1]["centers"]
@@ -125,22 +136,27 @@ class PointCloudEncoder(nn.Module):
             patch_embed = patches["embeddings"]  # [B, L, D]
             centers = patches["centers"]  # [B, L, 3]
         patch_embed = self.patch_proj(patch_embed)
-
+        et("patch_proj")
         # Positional embedding for patches
         pos_embed = self.pos_embed(centers)
         x = patch_embed + pos_embed
+        et("pos_embed")
 
         # Dropout patch
         x = self.patch_dropout(x)
+        et("patch_dropout")
         # Dropout features
         x = self.transformer.pos_drop(x)
+        et("pos_drop")
 
         for block in self.transformer.blocks:
             x = block(x)
+        et("transformer.blocks")
         # In fact, only norm or fc_norm is not identity in those transformers.
         x = self.transformer.norm(x)
         x = self.transformer.fc_norm(x)
         x = self.out_proj(x)
+        et("norm fc_norm out_proj")
 
         return x, patches
 
