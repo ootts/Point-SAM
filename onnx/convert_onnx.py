@@ -45,6 +45,7 @@ def main():
 
     # Export torch model to ONNX
     output_onnx = args.output
+    os.makedirs(os.path.dirname(output_onnx),exist_ok=True)
     print("Exporting ONNX model {}".format(output_onnx))
     torch.onnx.export(model, (xyz, rgb), output_onnx,
                       export_params=True,
