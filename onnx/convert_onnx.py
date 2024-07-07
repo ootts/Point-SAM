@@ -26,9 +26,10 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--input',default='')
     parser.add_argument('--output',default='onnx')
     args = parser.parse_args()
-    ckpt_path = "model.safetensors"
+    ckpt_path = args.input
     model = build_point_sam(ckpt_path, 512, 64)  # (ckpt_path, num_centers, KNN size)
     pc_encoder: PointCloudEncoder = model.pc_encoder.cuda()
 
