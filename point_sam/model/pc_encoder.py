@@ -160,6 +160,27 @@ class PointCloudEncoder(nn.Module):
 
         return x, patches
 
+    def forward_onnx(self, patch_features, centers):
+        patch_embed = self.patch_embed.patch_encoder(patch_features)
+
+        patch_embed = self.patch_proj(patch_embed)
+        # Positional embedding for patches
+        pos_embed = self.pos_embed(centers)
+        x = patch_embed + pos_embed
+
+        # Dropout patch
+        x = self.patch_dropout(x)
+        # Dropout features
+        x = self.transformer.pos_drop(x)
+        for block in self.transformer.blocks:
+            x = block(x)
+        # In fact, only norm or fc_norm is not identity in those transformers.
+        x = self.transformer.norm(x)
+        x = self.transformer.fc_norm(x)
+        x = self.out_proj(x)
+
+        return x
+
 
 class Block(nn.Module):
     def __init__(self, in_channels, hidden_dim, out_channels):
