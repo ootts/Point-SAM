@@ -18,5 +18,8 @@ def build_point_sam(checkpoint, num_group=512, group_size=64):
     decoder_transformer = TwoWayTransformer(2, 256, 8, 2048)
     mask_decoder = MaskDecoder(256, decoder_transformer)
     model = PointCloudSAM(encoder, mask_encoder, mask_decoder)
-    load_model(model, checkpoint)
+    if checkpoint=="":
+        print("No checkpoint provided")
+    else:
+        load_model(model, checkpoint)
     return model

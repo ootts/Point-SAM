@@ -87,7 +87,7 @@ class PatchDropout(nn.Module):
         return x
 
 
-et = EvalTime()
+et = EvalTime(disable=True)
 
 
 class PointCloudEncoder(nn.Module):
