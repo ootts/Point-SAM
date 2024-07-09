@@ -27,16 +27,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='')
     parser.add_argument('--output', default='onnx')
-    parser.add_argument('--num_centers', default=512,type=int)
+    parser.add_argument('--num_centers', default=512, type=int)
+    parser.add_argument('--group_size', default=64, type=int)
     args = parser.parse_args()
     ckpt_path = args.input
     num_centers = args.num_centers
-    model = build_point_sam(ckpt_path, num_centers, 64)  # (ckpt_path, num_centers, KNN size)
+    group_size = args.group_size
+    model = build_point_sam(ckpt_path, num_centers, group_size)  # (ckpt_path, num_centers, KNN size)
     pc_encoder: PointCloudEncoder = model.pc_encoder.cuda()
 
     model = PointSAMEncoderOnnx(pc_encoder)
 
-    patch_features = np.random.rand(1, num_centers, 64, 6)
+    patch_features = np.random.rand(1, num_centers, group_size, 6)
     patch_features = torch.tensor(patch_features).float().cuda()
     centers = np.random.rand(1, num_centers, 3)
     centers = torch.tensor(centers).float().cuda()
